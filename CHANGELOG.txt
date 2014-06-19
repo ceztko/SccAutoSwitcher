@@ -1,0 +1,3 @@
+Scc Auto Switcher 0.1
+---------------------
+  * First release

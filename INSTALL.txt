@@ -1,0 +1,4 @@
+INSTALL
+=======
+
+Build and install &(TargetDir)\SccAutoSwitcher.vsix
