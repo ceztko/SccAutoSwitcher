@@ -1,7 +1,7 @@
 ﻿// Copyright (c) 2013-2014 Francesco Pretto
 // This file is subject to the MIT license
 
-namespace ScpSwitcher
+namespace SccAutoSwitcher
 {
     static class GuidList
     {

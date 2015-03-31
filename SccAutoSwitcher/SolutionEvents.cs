@@ -9,12 +9,13 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio;
 using System.IO;
 
-namespace ScpSwitcher
+namespace SccAutoSwitcher
 {
     public class SolutionEvents : IVsSolutionEvents3, IVsSolutionLoadEvents
     {
-        public const string svndir = ".svn";
-        public const string gitdir = ".git";
+        public const string SVN_DIR = ".svn";
+        public const string GIT_DIR = ".git";
+        public const string MERCURIAL_DIR = ".hg";
 
         public int OnAfterCloseSolution(object pUnkReserved)
         {
@@ -116,15 +117,21 @@ namespace ScpSwitcher
             DirectoryInfo currdir = new DirectoryInfo(Path.GetDirectoryName(pszSolutionFilename));
             while (true)
             {
-                if (Directory.Exists(Path.Combine(currdir.FullName, svndir)))
+                if (Directory.Exists(Path.Combine(currdir.FullName, SVN_DIR)))
                 {
-                    MainSite.RegisterPrimarySourceControlProvider(SccProvider.AnkhSvn);
+                    MainSite.RegisterPrimarySourceControlProvider(RcsType.Svn);
                     break;
                 }
 
-                if (Directory.Exists(Path.Combine(currdir.FullName, gitdir)))
+                if (Directory.Exists(Path.Combine(currdir.FullName, GIT_DIR)))
                 {
-                    MainSite.RegisterPrimarySourceControlProvider(SccProvider.GitSourceControlProvider);
+                    MainSite.RegisterPrimarySourceControlProvider(RcsType.Git);
+                    break;
+                }
+
+                if (Directory.Exists(Path.Combine(currdir.FullName, MERCURIAL_DIR)))
+                {
+                    MainSite.RegisterPrimarySourceControlProvider(RcsType.Mercurial);
                     break;
                 }
 
