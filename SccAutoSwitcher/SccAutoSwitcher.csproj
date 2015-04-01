@@ -121,6 +121,7 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="MainSite.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SccUtils.cs" />
     <Compile Include="SolutionEvents.cs" />
     <Compile Include="SwitcherOptions.cs">
       <SubType>Component</SubType>

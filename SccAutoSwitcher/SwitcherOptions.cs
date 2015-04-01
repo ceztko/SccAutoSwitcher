@@ -18,30 +18,56 @@ namespace SccAutoSwitcher
             set { MainSite.SetGitSccProvider(value); }
         }
 
-        [DisplayName("Svn Provider")]
+        [DisplayName("Subversion Provider")]
         [Category("Scc Providers")]
-        public SvnSccProvider SvnProvider
+        public SubversionSccProvider SubversionProvider
         {
-            get { return MainSite.GetSvnSccProvider(); }
-            set { MainSite.SetSvnSccProvider(value); }
+            get { return MainSite.GetSubversionSccProvider(); }
+            set { MainSite.SetSubversionSccProvider(value); }
+        }
+
+        [DisplayName("Mercurial Provider")]
+        [Category("Scc Providers")]
+        public MercurialSccProvider MercurialProvider
+        {
+            get { return MainSite.GetMercurialSccProvider(); }
+            set { MainSite.SetMercurialSccProvider(value); }
         }
     }
 
     public enum GitSccProvider
     {
+        Default = 0,
+
         [Description("Git Source Control Provider")]
         GitSourceControlProvider,
 
         [Display(Name = "Visual Studio Tools for Git")]
-        VisualStudioToolsForGit
+        VisualStudioToolsForGit,
+
+        Disabled
     }
 
-    public enum SvnSccProvider
+    public enum SubversionSccProvider
     {
+        Default = 0,
+
         [Description("VisualSVN")]
         VisualSVN,
 
         [Description("AnkhSVN")]
-        AnkhSVN 
+        AnkhSVN,
+
+        Disabled
+    }
+
+    public enum MercurialSccProvider
+    {
+        Default = 0,
+
+        [Description("VisualHG")]
+        VisualHG,
+
+        Disabled
     }
 }

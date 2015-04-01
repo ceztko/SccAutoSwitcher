@@ -34,26 +34,9 @@ namespace SccAutoSwitcher
         private static DTE2 _DTE2;
         private static SolutionEvents _SolutionEvents;
 
-        public const string AnkhSvnPackageId = "604ad610-5cf9-4bd5-8acc-f49810e2efd4";
-        public const string AnkhSvnSccProviderId = "8770915b-b235-42ec-bbc6-8e93286e59b5";
-
-        public const string VisualSvnPackageId = "133240d5-fafa-4868-8fd7-5190a259e676";
-        public const string VisualSvnSccProviderId = "937cffd6-105a-4c00-a044-33ffb48a3b8f";
-
-        public const string VSToolsForGitPackagedId = "7fe30a77-37f9-4cf2-83dd-96b207028e1b";
-        public const string VSToolsForGitSccProviderId = "28c35eb2-67ea-4c5f-b49d-dacf73a66989";
-
-        public const string GitScpPackagedId = "c4128d99-2000-41d1-a6c3-704e6c1a3de2";
-        public const string GitScpSccProviderId = "c4128d99-0000-41d1-a6c3-704e6c1a3de2";
-
-        public const string MercurialPackageId = "a7f26ca1-2000-4729-896e-0bbe9e380635";
-        public const string MercurialSccProviderId = "a7f26ca1-0000-4729-896e-0bbe9e380635";
-
         private static IVsRegisterScciProvider _VsRegisterScciProvider;
         private static IVsShell _VsShell;
         private static WritableSettingsStore _SettingsStore;
-        private static RcsType _CurrentRcsType;
-        private static SccProvider _CurrentSccProvider;
 
         public MainSite() { }
 
@@ -62,15 +45,6 @@ namespace SccAutoSwitcher
             base.Initialize();
             IVsExtensibility extensibility = GetService<IVsExtensibility>();
             _DTE2 = (DTE2)extensibility.GetGlobalsObject(null).DTE;
-
-            string version = _DTE2.Version;
-
-            // TODO: Read HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\12.0\CurrentSourceControlProvider
-            string suffix = GetSuffix(_DTE2.CommandLineArguments);
-            var key2 = @"Software\Microsoft\VisualStudio\12.0\CurrentSourceControlProvider";
-            var guidString = (string)Microsoft.Win32.Registry.CurrentUser.OpenSubKey(key2).GetValue("");
-            var currentGuid = Guid.Parse(guidString);
-
 
             IVsSolution solution = GetService<SVsSolution>() as IVsSolution;
             _SolutionEvents = new SolutionEvents();
@@ -89,148 +63,142 @@ namespace SccAutoSwitcher
             int hr;
             Guid packageGuid = new Guid();
             Guid sccProviderGuid = new Guid();
-            SccProvider sccProvider = SccProvider.None;
+            bool enabled = false;
 
             switch (rcsType)
             {
-                case RcsType.Svn:
+                case RcsType.Subversion:
                 {
-                    RegisterSvnScc(out packageGuid, out sccProviderGuid, out sccProvider);
+                    enabled = RegisterSubversionScc(out packageGuid, out sccProviderGuid);
                     break;
                 }
                 case RcsType.Git:
                 {
-                    RegisterGitScc(out packageGuid, out sccProviderGuid, out sccProvider);
+                    enabled = RegisterGitScc(out packageGuid, out sccProviderGuid);
                     break;
                 }
                 case RcsType.Mercurial:
                 {
-                    packageGuid = new Guid(MercurialPackageId);
-                    sccProviderGuid = new Guid(MercurialSccProviderId);
-                    sccProvider = SccProvider.Mercurial;
+                    enabled = RegisterMercurialScc(out packageGuid, out sccProviderGuid);
                     break;
                 }
             }
 
+            if (!enabled)
+                return;
+
             int installed;
             hr = _VsShell.IsPackageInstalled(ref packageGuid, out installed);
             Marshal.ThrowExceptionForHR(hr);
-            if (installed == 1)
-            {
-                hr = _VsRegisterScciProvider.RegisterSourceControlProvider(sccProviderGuid);
-                Marshal.ThrowExceptionForHR(hr);
-                _CurrentRcsType = rcsType;
-                _CurrentSccProvider = sccProvider;
-            }
+            if (installed == 0)
+                return;
+
+            hr = _VsRegisterScciProvider.RegisterSourceControlProvider(sccProviderGuid);
+            Marshal.ThrowExceptionForHR(hr);
         }
 
-        private static void RegisterGitScc(out Guid packageGuid, out Guid sccProviderGuid, out SccProvider provider)
+        private static bool RegisterGitScc(out Guid packageGuid, out Guid sccProviderGuid)
         {
             GitSccProvider gitProvider = GetGitSccProvider();
+
+            if (gitProvider == GitSccProvider.Default)
+                gitProvider = GetDefaultGitSccProvider();
+
+            if (gitProvider == GitSccProvider.Disabled)
+            {
+                packageGuid = new Guid();
+                sccProviderGuid = new Guid();
+                return false;
+            }
+
             switch (gitProvider)
             {
                 case GitSccProvider.GitSourceControlProvider:
                 {
                     packageGuid = new Guid(GitScpPackagedId);
                     sccProviderGuid = new Guid(GitScpSccProviderId);
-                    provider = SccProvider.GitSourceControlProvider;
-                    break;
+                    return true;
                 }
                 case GitSccProvider.VisualStudioToolsForGit:
                 {
                     packageGuid = new Guid(VSToolsForGitPackagedId);
                     sccProviderGuid = new Guid(VSToolsForGitSccProviderId);
-                    provider = SccProvider.VisualStudioToolsForGit;
-                    break;
+                    return true;
                 }
                 default:
                     throw new Exception();
             }
         }
 
-        private static void RegisterSvnScc(out Guid packageGuid, out Guid sccProviderGuid, out SccProvider provider)
+        private static bool RegisterSubversionScc(out Guid packageGuid, out Guid sccProviderGuid)
         {
-            SvnSccProvider svnprovider = GetSvnSccProvider();
-            switch (svnprovider)
+            SubversionSccProvider svnProvider = GetSubversionSccProvider();
+
+            if (svnProvider == SubversionSccProvider.Default)
+                svnProvider = GetDefaultSubversionSccProvider();
+
+            if (svnProvider == SubversionSccProvider.Disabled)
             {
-                case SvnSccProvider.AnkhSVN:
+                packageGuid = new Guid();
+                sccProviderGuid = new Guid();
+                return false;
+            }
+
+            switch (svnProvider)
+            {
+                case SubversionSccProvider.AnkhSVN:
                 {
                     packageGuid = new Guid(AnkhSvnPackageId);
                     sccProviderGuid = new Guid(AnkhSvnSccProviderId);
-                    provider = SccProvider.AnkhSvn;
-                    break;
+                    return true;
                 }
-                case SvnSccProvider.VisualSVN:
+                case SubversionSccProvider.VisualSVN:
                 {
                     packageGuid = new Guid(VisualSvnPackageId);
                     sccProviderGuid = new Guid(VisualSvnSccProviderId);
-                    provider = SccProvider.VisualSVN;
-                    break;
+                    return true;
                 }
                 default:
                     throw new Exception();
             }
         }
 
-        public static void SetGitSccProvider(GitSccProvider provider)
-        {
-            _SettingsStore.CreateCollection("SccAutoSwitcher");
-            _SettingsStore.SetString("SccAutoSwitcher", "GitProvider", provider.ToString());
-            if (_CurrentRcsType == RcsType.Git)
-                RegisterPrimarySourceControlProvider(RcsType.Git);
-        }
 
-        public static void SetSvnSccProvider(SvnSccProvider provider)
+        private static bool RegisterMercurialScc(out Guid packageGuid, out Guid sccProviderGuid)
         {
-            _SettingsStore.CreateCollection("SccAutoSwitcher");
-            _SettingsStore.SetString("SccAutoSwitcher", "SvnProvider", provider.ToString());
-            if (_CurrentRcsType == RcsType.Svn)
-                RegisterPrimarySourceControlProvider(RcsType.Svn);
-        }
+            MercurialSccProvider mercurialProvider = GetMercurialSccProvider();
 
-        private static GitSccProvider GetGitSccProvider(string provider)
-        {
-            switch (provider)
+            if (mercurialProvider == MercurialSccProvider.Default)
+                mercurialProvider = GetDefaultMercurialSccProvider();
+
+            if (mercurialProvider == MercurialSccProvider.Disabled)
             {
-                case "GitSourceControlProvider":
-                    return GitSccProvider.GitSourceControlProvider;
-                case "VisualStudioToolsForGit":
+                packageGuid = new Guid();
+                sccProviderGuid = new Guid();
+                return false;
+            }
+
+            switch (mercurialProvider)
+            {
+                case MercurialSccProvider.VisualHG:
+                {
+                    packageGuid = new Guid(VisualHGPackageId);
+                    sccProviderGuid = new Guid(ViusalHGSccProviderId);
+                    return true;
+                }
                 default:
-                    return GitSccProvider.VisualStudioToolsForGit;
+                    throw new Exception();
             }
         }
 
-        private static SvnSccProvider GetSvnSccProvider(string provider)
+        private static string GetRegUserSettingsPath()
         {
-            switch (provider)
-            {
-                case "VisualSVN":
-                    return SvnSccProvider.VisualSVN;
-                case "AnkhSVN":
-                default:
-                    return SvnSccProvider.AnkhSVN;
-            }
+            string version = _DTE2.Version;
+            string suffix = GetSuffix(_DTE2.CommandLineArguments);
+            return @"Software\Microsoft\VisualStudio\" + version + suffix;
         }
 
-        public static SvnSccProvider GetSvnSccProvider()
-        {
-            string providerStr = _SettingsStore.GetString("SccAutoSwitcher", "SvnProvider", null);
-            return GetSvnSccProvider(providerStr);
-        }
-
-        public static GitSccProvider GetGitSccProvider()
-        {
-            string providerStr = _SettingsStore.GetString("SccAutoSwitcher", "GitProvider", null);
-            return GetGitSccProvider(providerStr);
-        }
-
-        public WritableSettingsStore GetWritableSettingsStore()
-        {
-            var shellSettingsManager = new ShellSettingsManager(this);
-            return shellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
-        }
-
-        private string GetSuffix(string args)
+        private static string GetSuffix(string args)
         {
             string[] tokens = args.Split(' ', '\t');
             int foundIndex = -1;
@@ -252,6 +220,12 @@ namespace SccAutoSwitcher
             return tokens[foundIndex];
         }
 
+        public WritableSettingsStore GetWritableSettingsStore()
+        {
+            var shellSettingsManager = new ShellSettingsManager(this);
+            return shellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
+        }
+
         private void GetService<T>(out T service)
         {
             service = (T)GetService(typeof(T));
@@ -266,23 +240,5 @@ namespace SccAutoSwitcher
         {
             get { return _DTE2; }
         }
-    }
-
-    public enum SccProvider
-    {
-        None = 0,
-        AnkhSvn,
-        VisualSVN,
-        GitSourceControlProvider,
-        VisualStudioToolsForGit,
-        Mercurial
-    }
-
-    public enum RcsType
-    {
-        None = 0,
-        Svn,
-        Git,
-        Mercurial
     }
 }

@@ -119,7 +119,7 @@ namespace SccAutoSwitcher
             {
                 if (Directory.Exists(Path.Combine(currdir.FullName, SVN_DIR)))
                 {
-                    MainSite.RegisterPrimarySourceControlProvider(RcsType.Svn);
+                    MainSite.RegisterPrimarySourceControlProvider(RcsType.Subversion);
                     break;
                 }
 
