@@ -16,7 +16,7 @@ Scc providers and there exists an easy way to detect
 proper RCS type by checking file or directories presence
 starting from solution root directory.
 
-It supports Visual Studio 2010/2012/2013.
+It supports Visual Studio 2010/2012/2013. License is MIT.
 
 ### Options dialog page
 
@@ -35,18 +35,19 @@ values, let's take Suversion Scc providers as an example:
   Subversion repositories, effectively disabling
   SccAutoSwitcher for this RCS.
 
-### Notice to popular Scc provider devs (git, Subversion, ...)
+### Notice to popular Scc provider developers
 
 No popular Scc provider seems to enforce itself using
 the same mechanism SccAutoSwitcher uses to load them.
 This may be a restriction of VisualStudio. enforced for
 Scc provider extensions only, or a misunderstanding
-on the used API[1]. Regardless of the motivation, this actually
-leaves doors open for competition, as multiple Scc providers
-can be installed and there's no contention during solution
-loading: this is the specific moment when SccAutoSwitcher
-intervenes, acting as an arbitrator for the different Scc
-providers and efficiently loading the correct or favourite
+on the used API[1]. Regardless of the motivation, this
+actually leaves doors open for competition, as multiple
+Scc providers can be installed for the same RCS type and
+there's no contention during solution loading: this is
+the specific moment when SccAutoSwitcher intervenes,
+acting as an arbitrator for the different Scc providers
+and efficiently loading the correct or favourite
 provider.
 
 [1] https://msdn.microsoft.com/en-us/library/microsoft.visualstudio.shell.interop.ivsregisterscciprovider.registersourcecontrolprovider.aspx
