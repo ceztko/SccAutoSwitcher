@@ -29,28 +29,30 @@ namespace SccAutoSwitcher
     //[ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExists_string)] // Load if solution exists
     [ProvideAutoLoad(VSConstants.UICONTEXT.NoSolution_string)]       // Load if no solution
     [ProvideOptionPage(typeof(SwitcherOptions), "Scc Auto Switcher", "Scc Providers", 101, 106, true)] // Options dialog page
-    public sealed partial class MainSite : Package
+    public sealed partial class MainSite : Package, IVsSolutionEvents3, IVsSolutionLoadEvents
     {
         private static DTE2 _DTE2;
-        private static SolutionEvents _SolutionEvents;
 
         private static IVsRegisterScciProvider _VsRegisterScciProvider;
         private static IVsShell _VsShell;
         private static WritableSettingsStore _SettingsStore;
+        private static RcsType _CurrentSolutionRcsType;
 
         public MainSite() { }
 
         protected override void Initialize()
         {
             base.Initialize();
+
+            _CurrentSolutionRcsType = RcsType.Unknown;
+
             IVsExtensibility extensibility = GetService<IVsExtensibility>();
             _DTE2 = (DTE2)extensibility.GetGlobalsObject(null).DTE;
 
             IVsSolution solution = GetService<SVsSolution>() as IVsSolution;
-            _SolutionEvents = new SolutionEvents();
             int hr;
             uint pdwCookie;
-            hr = solution.AdviseSolutionEvents(_SolutionEvents, out pdwCookie);
+            hr = solution.AdviseSolutionEvents(this, out pdwCookie);
             Marshal.ThrowExceptionForHR(hr);
 
             _VsShell = GetService<SVsShell>() as IVsShell;
@@ -63,28 +65,33 @@ namespace SccAutoSwitcher
             int hr;
             Guid packageGuid = new Guid();
             Guid sccProviderGuid = new Guid();
+            SccProvider providerToLoad = SccProvider.Unknown;
             bool enabled = false;
 
             switch (rcsType)
             {
                 case RcsType.Subversion:
                 {
-                    enabled = RegisterSubversionScc(out packageGuid, out sccProviderGuid);
+                    enabled = RegisterSubversionScc(out packageGuid, out sccProviderGuid, out providerToLoad);
                     break;
                 }
                 case RcsType.Git:
                 {
-                    enabled = RegisterGitScc(out packageGuid, out sccProviderGuid);
+                    enabled = RegisterGitScc(out packageGuid, out sccProviderGuid, out providerToLoad);
                     break;
                 }
                 case RcsType.Mercurial:
                 {
-                    enabled = RegisterMercurialScc(out packageGuid, out sccProviderGuid);
+                    enabled = RegisterMercurialScc(out packageGuid, out sccProviderGuid, out providerToLoad);
                     break;
                 }
             }
 
             if (!enabled)
+                return;
+
+            SccProvider currentSccProvider = GetCurrentSccProvider();
+            if (providerToLoad == currentSccProvider)
                 return;
 
             int installed;
@@ -97,7 +104,8 @@ namespace SccAutoSwitcher
             Marshal.ThrowExceptionForHR(hr);
         }
 
-        private static bool RegisterGitScc(out Guid packageGuid, out Guid sccProviderGuid)
+        /// <returns>false if handling the scc provider is disabled for this Rcs type</returns>
+        private static bool RegisterGitScc(out Guid packageGuid, out Guid sccProviderGuid, out SccProvider provider)
         {
             GitSccProvider gitProvider = GetGitSccProvider();
 
@@ -108,21 +116,24 @@ namespace SccAutoSwitcher
             {
                 packageGuid = new Guid();
                 sccProviderGuid = new Guid();
+                provider = SccProvider.Unknown;
                 return false;
             }
 
             switch (gitProvider)
             {
-                case GitSccProvider.GitSourceControlProvider:
-                {
-                    packageGuid = new Guid(GitScpPackagedId);
-                    sccProviderGuid = new Guid(GitScpSccProviderId);
-                    return true;
-                }
                 case GitSccProvider.VisualStudioToolsForGit:
                 {
                     packageGuid = new Guid(VSToolsForGitPackagedId);
                     sccProviderGuid = new Guid(VSToolsForGitSccProviderId);
+                    provider = SccProvider.VisualStudioToolsForGit;
+                    return true;
+                }
+                case GitSccProvider.GitSourceControlProvider:
+                {
+                    packageGuid = new Guid(GitScpPackagedId);
+                    sccProviderGuid = new Guid(GitScpSccProviderId);
+                    provider = SccProvider.GitSourceControlProvider;
                     return true;
                 }
                 default:
@@ -130,7 +141,8 @@ namespace SccAutoSwitcher
             }
         }
 
-        private static bool RegisterSubversionScc(out Guid packageGuid, out Guid sccProviderGuid)
+        /// <returns>false if handling the scc provider is disabled for this Rcs type</returns>
+        private static bool RegisterSubversionScc(out Guid packageGuid, out Guid sccProviderGuid, out SccProvider provider)
         {
             SubversionSccProvider svnProvider = GetSubversionSccProvider();
 
@@ -141,6 +153,7 @@ namespace SccAutoSwitcher
             {
                 packageGuid = new Guid();
                 sccProviderGuid = new Guid();
+                provider = SccProvider.Unknown;
                 return false;
             }
 
@@ -150,12 +163,14 @@ namespace SccAutoSwitcher
                 {
                     packageGuid = new Guid(AnkhSvnPackageId);
                     sccProviderGuid = new Guid(AnkhSvnSccProviderId);
+                    provider = SccProvider.AnkhSvn;
                     return true;
                 }
                 case SubversionSccProvider.VisualSVN:
                 {
                     packageGuid = new Guid(VisualSvnPackageId);
                     sccProviderGuid = new Guid(VisualSvnSccProviderId);
+                    provider = SccProvider.VisualSVN;
                     return true;
                 }
                 default:
@@ -163,8 +178,8 @@ namespace SccAutoSwitcher
             }
         }
 
-
-        private static bool RegisterMercurialScc(out Guid packageGuid, out Guid sccProviderGuid)
+        /// <returns>false if handling the scc provider is disabled for this Rcs type</returns>
+        private static bool RegisterMercurialScc(out Guid packageGuid, out Guid sccProviderGuid, out SccProvider provider)
         {
             MercurialSccProvider mercurialProvider = GetMercurialSccProvider();
 
@@ -175,6 +190,7 @@ namespace SccAutoSwitcher
             {
                 packageGuid = new Guid();
                 sccProviderGuid = new Guid();
+                provider = SccProvider.Unknown;
                 return false;
             }
 
@@ -184,6 +200,7 @@ namespace SccAutoSwitcher
                 {
                     packageGuid = new Guid(VisualHGPackageId);
                     sccProviderGuid = new Guid(ViusalHGSccProviderId);
+                    provider = SccProvider.VisualHG;
                     return true;
                 }
                 default:

@@ -11,7 +11,7 @@ using System.IO;
 
 namespace SccAutoSwitcher
 {
-    public class SolutionEvents : IVsSolutionEvents3, IVsSolutionLoadEvents
+    public partial class MainSite
     {
         public const string SVN_DIR = ".svn";
         public const string GIT_DIR = ".git";
@@ -115,23 +115,28 @@ namespace SccAutoSwitcher
         public int OnBeforeOpenSolution(string pszSolutionFilename)
         {
             DirectoryInfo currdir = new DirectoryInfo(Path.GetDirectoryName(pszSolutionFilename));
+
+            _CurrentSolutionRcsType = RcsType.Unknown;
             while (true)
             {
                 if (Directory.Exists(Path.Combine(currdir.FullName, SVN_DIR)))
                 {
                     MainSite.RegisterPrimarySourceControlProvider(RcsType.Subversion);
+                    _CurrentSolutionRcsType = RcsType.Subversion;
                     break;
                 }
 
                 if (Directory.Exists(Path.Combine(currdir.FullName, GIT_DIR)))
                 {
                     MainSite.RegisterPrimarySourceControlProvider(RcsType.Git);
+                    _CurrentSolutionRcsType = RcsType.Git;
                     break;
                 }
 
                 if (Directory.Exists(Path.Combine(currdir.FullName, MERCURIAL_DIR)))
                 {
                     MainSite.RegisterPrimarySourceControlProvider(RcsType.Mercurial);
+                    _CurrentSolutionRcsType = RcsType.Mercurial;
                     break;
                 }
 

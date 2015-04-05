@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) 2013-2014 Francesco Pretto
+// This file is subject to the MIT license
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,6 +26,12 @@ namespace SccAutoSwitcher
 
         public const string VisualHGPackageId = "a7f26ca1-2000-4729-896e-0bbe9e380635";
         public const string ViusalHGSccProviderId = "a7f26ca1-0000-4729-896e-0bbe9e380635";
+
+        public const string SccAutoSwitcherCollection = "SccAutoSwitcher";
+
+        public const string SubversionProviderProperty = "SubversionProvider";
+        public const string GitProviderProperty = "GitProvider";
+        public const string MercurialProviderProperty = "MercurialProvider";
 
         private static SccProvider GetCurrentSccProvider()
         {
@@ -110,68 +119,65 @@ namespace SccAutoSwitcher
 
         public static void SetGitSccProvider(GitSccProvider provider)
         {
-            _SettingsStore.CreateCollection("SccAutoSwitcher");
+            _SettingsStore.CreateCollection(SccAutoSwitcherCollection);
             if (provider == GitSccProvider.Default)
-                _SettingsStore.DeleteProperty("SccAutoSwitcher", "GitProvider");
+                _SettingsStore.DeleteProperty(SccAutoSwitcherCollection, GitProviderProperty);
             else
-                _SettingsStore.SetString("SccAutoSwitcher", "GitProvider", provider.ToString());
+                _SettingsStore.SetString(SccAutoSwitcherCollection, GitProviderProperty, provider.ToString());
 
             if (provider == GitSccProvider.Disabled)
                 return;
 
-            RcsType type = GetCurrentRcsType();
-            if (type == RcsType.Git)
+            if (_CurrentSolutionRcsType == RcsType.Git)
                 RegisterPrimarySourceControlProvider(RcsType.Git);
         }
 
         public static void SetSubversionSccProvider(SubversionSccProvider provider)
         {
-            _SettingsStore.CreateCollection("SccAutoSwitcher");
+            _SettingsStore.CreateCollection(SccAutoSwitcherCollection);
             if (provider == SubversionSccProvider.Default)
-                _SettingsStore.DeleteProperty("SccAutoSwitcher", "SvnProvider");
+                _SettingsStore.DeleteProperty(SccAutoSwitcherCollection, SubversionProviderProperty);
             else
-                _SettingsStore.SetString("SccAutoSwitcher", "SvnProvider", provider.ToString());
+                _SettingsStore.SetString(SccAutoSwitcherCollection, SubversionProviderProperty, provider.ToString());
 
             if (provider == SubversionSccProvider.Disabled)
                 return;
 
-            RcsType type = GetCurrentRcsType();
-            if (type == RcsType.Subversion)
+            if (_CurrentSolutionRcsType == RcsType.Subversion)
                 RegisterPrimarySourceControlProvider(RcsType.Subversion);
         }
 
         public static void SetMercurialSccProvider(MercurialSccProvider provider)
         {
-            _SettingsStore.CreateCollection("SccAutoSwitcher");
+            _SettingsStore.CreateCollection(SccAutoSwitcherCollection);
             if (provider == MercurialSccProvider.Default)
-                _SettingsStore.DeleteProperty("SccAutoSwitcher", "MercurialProvider");
+                _SettingsStore.DeleteProperty(SccAutoSwitcherCollection, MercurialProviderProperty);
             else
-                _SettingsStore.SetString("SccAutoSwitcher", "MercurialProvider", provider.ToString());
+                _SettingsStore.SetString(SccAutoSwitcherCollection, MercurialProviderProperty, provider.ToString());
 
             if (provider == MercurialSccProvider.Disabled)
                 return;
 
-            RcsType type = GetCurrentRcsType();
-            if (type == RcsType.Mercurial)
+            if (_CurrentSolutionRcsType == RcsType.Mercurial)
                 RegisterPrimarySourceControlProvider(RcsType.Mercurial);
         }
 
 
         public static SubversionSccProvider GetSubversionSccProvider()
         {
-            string providerStr = _SettingsStore.GetString("SccAutoSwitcher", "SubversionProvider", null);
+            string providerStr = _SettingsStore.GetString(SccAutoSwitcherCollection, SubversionProviderProperty, null);
             return GetSubversionSccProvider(providerStr);
         }
 
         public static MercurialSccProvider GetMercurialSccProvider()
         {
-            string providerStr = _SettingsStore.GetString("SccAutoSwitcher", "MercurialProvider", null);
+            string providerStr = _SettingsStore.GetString(SccAutoSwitcherCollection, MercurialProviderProperty, null);
             return GetMercurialSccProvider(providerStr);
         }
 
         public static GitSccProvider GetGitSccProvider()
         {
-            string providerStr = _SettingsStore.GetString("SccAutoSwitcher", "GitProvider", null);
+            string providerStr = _SettingsStore.GetString(SccAutoSwitcherCollection, GitProviderProperty, null);
             return GetGitSccProvider(providerStr);
         }
 
@@ -232,7 +238,7 @@ namespace SccAutoSwitcher
             return MercurialSccProvider.Disabled;
         }
 
-        public static RcsType GetCurrentRcsType()
+        public static RcsType GetLoadedRcsType()
         {
             SccProvider provider = GetCurrentSccProvider();
             return GetRcsTypeFromSccProvider(provider);
