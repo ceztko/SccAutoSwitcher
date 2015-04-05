@@ -19,7 +19,7 @@ namespace SccAutoSwitcher
         public const string VisualSvnSccProviderId = "937cffd6-105a-4c00-a044-33ffb48a3b8f";
 
         public const string VSToolsForGitPackagedId = "7fe30a77-37f9-4cf2-83dd-96b207028e1b";
-        public const string VSToolsForGitSccProviderId = "28c35eb2-67ea-4c5f-b49d-dacf73a66989";
+        public const string VSToolsForGitSccProviderId = "11b8e6d7-c08b-4385-b321-321078cdd1f8";
 
         public const string GitScpPackagedId = "c4128d99-2000-41d1-a6c3-704e6c1a3de2";
         public const string GitScpSccProviderId = "c4128d99-0000-41d1-a6c3-704e6c1a3de2";
