@@ -196,11 +196,11 @@ namespace SccAutoSwitcher
 
             switch (mercurialProvider)
             {
-                case MercurialSccProvider.VisualHG:
+                case MercurialSccProvider.HgSccPackage:
                 {
-                    packageGuid = new Guid(VisualHGPackageId);
-                    sccProviderGuid = new Guid(ViusalHGSccProviderId);
-                    provider = SccProvider.VisualHG;
+                    packageGuid = new Guid(HgSccPackagePackageId);
+                    sccProviderGuid = new Guid(HgSccPackageSccProviderId);
+                    provider = SccProvider.HgSccPackage;
                     return true;
                 }
                 default:

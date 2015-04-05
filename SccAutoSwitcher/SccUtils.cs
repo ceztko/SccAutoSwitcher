@@ -24,8 +24,8 @@ namespace SccAutoSwitcher
         public const string GitScpPackagedId = "c4128d99-2000-41d1-a6c3-704e6c1a3de2";
         public const string GitScpSccProviderId = "c4128d99-0000-41d1-a6c3-704e6c1a3de2";
 
-        public const string VisualHGPackageId = "a7f26ca1-2000-4729-896e-0bbe9e380635";
-        public const string ViusalHGSccProviderId = "a7f26ca1-0000-4729-896e-0bbe9e380635";
+        public const string HgSccPackagePackageId = "a7f26ca1-2000-4729-896e-0bbe9e380635";
+        public const string HgSccPackageSccProviderId = "a7f26ca1-0000-4729-896e-0bbe9e380635";
 
         public const string SccAutoSwitcherCollection = "SccAutoSwitcher";
 
@@ -50,8 +50,8 @@ namespace SccAutoSwitcher
                     return SccProvider.VisualStudioToolsForGit;
                 case GitScpSccProviderId:
                     return SccProvider.GitSourceControlProvider;
-                case ViusalHGSccProviderId:
-                    return SccProvider.VisualHG;
+                case HgSccPackageSccProviderId:
+                    return SccProvider.HgSccPackage;
                 default:
                     return SccProvider.Unknown;
             }
@@ -91,8 +91,8 @@ namespace SccAutoSwitcher
         {
             switch (str)
             {
-                case "VisualHG":
-                    return MercurialSccProvider.VisualHG;
+                case "HgSccPackage":
+                    return MercurialSccProvider.HgSccPackage;
                 case "Disabled":
                     return MercurialSccProvider.Disabled;
                 default:
@@ -110,7 +110,7 @@ namespace SccAutoSwitcher
                 case SccProvider.VisualStudioToolsForGit:
                 case SccProvider.GitSourceControlProvider:
                     return RcsType.Git;
-                case SccProvider.VisualHG:
+                case SccProvider.HgSccPackage:
                     return RcsType.Mercurial;
                 default:
                     return RcsType.Unknown;
@@ -229,11 +229,11 @@ namespace SccAutoSwitcher
             int hr;
             Guid packageId;
 
-            packageId = Guid.Parse(VisualHGPackageId);
+            packageId = Guid.Parse(HgSccPackagePackageId);
             hr = _VsShell.IsPackageInstalled(ref packageId, out installed);
             Marshal.ThrowExceptionForHR(hr);
             if (installed == 1)
-                return MercurialSccProvider.VisualHG;
+                return MercurialSccProvider.HgSccPackage;
 
             return MercurialSccProvider.Disabled;
         }
@@ -262,7 +262,7 @@ namespace SccAutoSwitcher
         VisualSVN,
         GitSourceControlProvider,
         VisualStudioToolsForGit,
-        VisualHG
+        HgSccPackage
     }
 
     public enum RcsType

@@ -65,8 +65,8 @@ namespace SccAutoSwitcher
     {
         Default = 0,
 
-        [Description("VisualHG")]
-        VisualHG,
+        [Description("HgSccPackage")]
+        HgSccPackage,
 
         Disabled
     }
