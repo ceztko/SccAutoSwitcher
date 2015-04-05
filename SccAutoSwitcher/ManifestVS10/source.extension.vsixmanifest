@@ -4,11 +4,10 @@
     <Name>Scc Auto Switcher</Name>
     <Author>Francesco Pretto</Author>
     <Version>1.0</Version>
-    <Description xml:space="preserve">Auto load Scc providers depending on presence of reserved repository directories</Description>
+    <Description xml:space="preserve">Auto load Scc providers depending on presence of reserved repository file or directories</Description>
     <Locale>1033</Locale>
     <License>LICENSE.txt</License>
     <Icon>Resources\Icon.png</Icon>
-    <PreviewImage>Resources\Preview.png</PreviewImage>
     <InstalledByMsi>false</InstalledByMsi>
     <SupportedProducts>
       <VisualStudio Version="10.0">

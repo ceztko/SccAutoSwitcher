@@ -7,7 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{D6B6BD71-E
 		CHANGELOG.txt = CHANGELOG.txt
 		INSTALL.txt = INSTALL.txt
 		LICENSE.txt = LICENSE.txt
-		README.txt = README.txt
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SccAutoSwitcher", "SccAutoSwitcher\SccAutoSwitcher.csproj", "{7C197171-9B9D-4958-BCD0-4851C7E48F5C}"
