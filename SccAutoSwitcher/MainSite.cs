@@ -231,7 +231,7 @@ namespace SccAutoSwitcher
                 it++;
             }
 
-            if (foundIndex == -1)
+            if (foundIndex == -1 || foundIndex >= tokens.Length)
                 return String.Empty;
 
             return tokens[foundIndex];
