@@ -203,6 +203,13 @@ namespace SccAutoSwitcher
                     provider = SccProvider.HgSccPackage;
                     return true;
                 }
+                case MercurialSccProvider.VisualHG:
+                {
+                    packageGuid = new Guid(VisualHGPackageId);
+                    sccProviderGuid = new Guid(VisualHGSccProviderId);
+                    provider = SccProvider.VisualHG;
+                    return true;
+                }
                 default:
                     throw new Exception();
             }

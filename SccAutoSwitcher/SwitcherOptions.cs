@@ -68,6 +68,9 @@ namespace SccAutoSwitcher
         [Description("HgSccPackage")]
         HgSccPackage,
 
+        [Description("VisualHG")]
+        VisualHG,
+
         Disabled
     }
 }

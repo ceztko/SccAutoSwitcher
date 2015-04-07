@@ -27,6 +27,9 @@ namespace SccAutoSwitcher
         public const string HgSccPackagePackageId = "a7f26ca1-2000-4729-896e-0bbe9e380635";
         public const string HgSccPackageSccProviderId = "a7f26ca1-0000-4729-896e-0bbe9e380635";
 
+        public const string VisualHGPackageId = "dadada00-dfd3-4e42-a61c-499121e136f3";
+        public const string VisualHGSccProviderId = "dadada00-63c7-4363-b107-ad5d9d915d45";
+                                                    
         public const string SccAutoSwitcherCollection = "SccAutoSwitcher";
 
         public const string SubversionProviderProperty = "SubversionProvider";
@@ -52,6 +55,8 @@ namespace SccAutoSwitcher
                     return SccProvider.GitSourceControlProvider;
                 case HgSccPackageSccProviderId:
                     return SccProvider.HgSccPackage;
+                case VisualHGSccProviderId:
+                    return SccProvider.VisualHG;
                 default:
                     return SccProvider.Unknown;
             }
@@ -93,6 +98,8 @@ namespace SccAutoSwitcher
             {
                 case "HgSccPackage":
                     return MercurialSccProvider.HgSccPackage;
+                case "VisualHG":
+                    return MercurialSccProvider.VisualHG;
                 case "Disabled":
                     return MercurialSccProvider.Disabled;
                 default:
@@ -111,6 +118,7 @@ namespace SccAutoSwitcher
                 case SccProvider.GitSourceControlProvider:
                     return RcsType.Git;
                 case SccProvider.HgSccPackage:
+                case SccProvider.VisualHG:
                     return RcsType.Mercurial;
                 default:
                     return RcsType.Unknown;
@@ -235,6 +243,12 @@ namespace SccAutoSwitcher
             if (installed == 1)
                 return MercurialSccProvider.HgSccPackage;
 
+            packageId = Guid.Parse(VisualHGPackageId);
+            hr = _VsShell.IsPackageInstalled(ref packageId, out installed);
+            Marshal.ThrowExceptionForHR(hr);
+            if (installed == 1)
+                return MercurialSccProvider.VisualHG;
+
             return MercurialSccProvider.Disabled;
         }
 
@@ -262,7 +276,8 @@ namespace SccAutoSwitcher
         VisualSVN,
         GitSourceControlProvider,
         VisualStudioToolsForGit,
-        HgSccPackage
+        HgSccPackage,
+        VisualHG
     }
 
     public enum RcsType

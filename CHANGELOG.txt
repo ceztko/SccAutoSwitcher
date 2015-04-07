@@ -1,3 +1,7 @@
-Scc Auto Switcher 0.1
+Scc Auto Switcher 1.1
+---------------------
+  * Added VisualHG (mercurial) support
+
+Scc Auto Switcher 1.0
 ---------------------
   * First release

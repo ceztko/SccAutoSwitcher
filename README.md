@@ -9,9 +9,10 @@ Supported Scc providers are:
  * VisualSVN *(Subversion)*;
  * Visual Studio Tools for Git *(Git, default)*;
  * Git Source Control Provider *(Git)*;
- * HgSccPackage *(mercurial)*.
+ * HgSccPackage *(mercurial, default)*;
+ * VisualHG *(mercurial)*.
  
-More providers could be added, provided they are regular
+More providers can be added, provided they are regular
 Scc providers and there exists an easy way to detect
 proper RCS type by checking file or directories presence
 starting from solution root directory.
