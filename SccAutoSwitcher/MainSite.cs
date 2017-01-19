@@ -85,6 +85,11 @@ namespace SccAutoSwitcher
                     enabled = RegisterMercurialScc(out packageGuid, out sccProviderGuid, out providerToLoad);
                     break;
                 }
+                case RcsType.Perforce:
+                {
+                    enabled = RegisterPerforceScc(out packageGuid, out sccProviderGuid, out providerToLoad);
+                    break;
+                }
             }
 
             if (!enabled)
@@ -210,6 +215,33 @@ namespace SccAutoSwitcher
                     provider = SccProvider.VisualHG;
                     return true;
                 }
+                default:
+                    throw new Exception();
+            }
+        }
+
+        private static bool RegisterPerforceScc(out Guid packageGuid, out Guid sccProviderGuid, out SccProvider provider)
+        {
+            PerforceSccProvider perforceProvider = GetPerforceSccProvider();
+
+            if (perforceProvider == PerforceSccProvider.Default)
+            {
+                perforceProvider = GetDefaultPerforceSccProvider();
+            }
+
+            switch (perforceProvider)
+            {
+                case PerforceSccProvider.Disabled:
+                    packageGuid = new Guid();
+                    sccProviderGuid = new Guid();
+                    provider = SccProvider.Unknown;
+                    return false;
+                case PerforceSccProvider.P4VS:
+                    packageGuid = new Guid(P4VSPackageId);
+                    sccProviderGuid = new Guid(P4VSPackageSccProviderId);
+                    provider = SccProvider.P4VS;
+                    return true;
+                case PerforceSccProvider.Default:
                 default:
                     throw new Exception();
             }
