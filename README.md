@@ -10,14 +10,16 @@ Supported Scc providers are:
  * Visual Studio Tools for Git *(Git, default)*;
  * Git Source Control Provider *(Git)*;
  * HgSccPackage *(mercurial, default)*;
- * VisualHG *(mercurial)*.
+ * VisualHG *(mercurial)*;
+ * Perforce *(thanks Iurii Zhogoliev)*.
  
 More providers can be added, provided they are regular
 Scc providers and there exists an easy way to detect
 proper RCS type by checking file or directories presence
 starting from solution root directory.
 
-It supports Visual Studio 2010/2012/2013. License is MIT.
+It supports all Visual Studio versions from 2010 to 2017.
+License is MIT.
 
 ### Options dialog page
 
