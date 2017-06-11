@@ -318,7 +318,10 @@ namespace SccAutoSwitcher
             if (regKey == null)
                 return null;
 
-            return (string)regKey.GetValue("");
+            string ret = (string)regKey.GetValue("");
+            ret = ret.Trim(new char[] { '{', '}' });
+            ret = ret.ToLower();
+            return ret;
         }
     }
 
