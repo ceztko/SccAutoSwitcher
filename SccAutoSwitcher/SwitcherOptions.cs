@@ -33,6 +33,14 @@ namespace SccAutoSwitcher
             get { return MainSite.GetMercurialSccProvider(); }
             set { MainSite.SetMercurialSccProvider(value); }
         }
+
+        [DisplayName("Perforce Provider")]
+        [Category("Scc Providers")]
+        public PerforceSccProvider PerforceProvider
+        {
+            get { return MainSite.GetPerforceSccProvider(); }
+            set { MainSite.SetPerforceSccProvider(value); }
+        }
     }
 
     public enum GitSccProvider
@@ -70,6 +78,16 @@ namespace SccAutoSwitcher
 
         [Description("VisualHG")]
         VisualHG,
+
+        Disabled
+    }
+
+    public enum PerforceSccProvider
+    {
+        Default = 0,
+
+        [Description("P4VS")]
+        P4VS,
 
         Disabled
     }

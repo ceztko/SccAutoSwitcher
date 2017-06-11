@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -114,8 +115,8 @@ namespace SccAutoSwitcher
 
         public int OnBeforeOpenSolution(string pszSolutionFilename)
         {
-            DirectoryInfo currdir = new DirectoryInfo(Path.GetDirectoryName(pszSolutionFilename));
-
+            DirectoryInfo solutionDir = new DirectoryInfo(Path.GetDirectoryName(pszSolutionFilename));
+            DirectoryInfo currdir = solutionDir;
             _CurrentSolutionRcsType = RcsType.Unknown;
             while (true)
             {
@@ -146,7 +147,40 @@ namespace SccAutoSwitcher
                 currdir = currdir.Parent;
             }
 
+            if (_CurrentSolutionRcsType == RcsType.Unknown && IsPerforce(solutionDir))
+            {
+                MainSite.RegisterPrimarySourceControlProvider(RcsType.Perforce);
+                _CurrentSolutionRcsType = RcsType.Perforce;
+            }
+
             return VSConstants.S_OK;
+        }
+
+        private static bool IsPerforce(DirectoryInfo directory)
+        {
+            const int ERROR_SUCCESS = 0;
+
+            try
+            {
+                using (var process = new Process
+                {
+                    StartInfo =
+                    {
+                        WorkingDirectory = directory.FullName,
+                        FileName = "p4.exe",
+                        Arguments = "where",
+                        CreateNoWindow = true,
+                        WindowStyle = ProcessWindowStyle.Hidden
+                    }
+                })
+                {
+                    return process.Start() && process.WaitForExit(10000) && process.ExitCode == ERROR_SUCCESS;
+                }
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public int OnQueryBackgroundLoadProjectBatch(out bool pfShouldDelayLoadToNextIdle)
